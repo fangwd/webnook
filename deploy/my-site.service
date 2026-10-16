@@ -1,0 +1,53 @@
+# Sample systemd unit for a Webnook site binary.
+# Install: copy to /etc/systemd/system/my-site.service, then
+#   sudo systemctl daemon-reload && sudo systemctl enable --now my-site
+[Unit]
+Description=My Webnook site
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=my-site
+Group=my-site
+ExecStart=/usr/local/bin/my-site
+# Reloads the TLS certificate and key (direct HTTPS only).
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+RestartSec=2s
+# Webnook drains in-flight requests on SIGTERM within Limits::shutdown_grace
+# (10s by default); give it a little longer before SIGKILL.
+KillSignal=SIGTERM
+TimeoutStopSec=15s
+
+# Secrets and settings live outside the binary and the repository.
+EnvironmentFile=-/etc/my-site/env
+StateDirectory=my-site
+WorkingDirectory=/var/lib/my-site
+Environment=RUST_LOG=info
+
+# Bind ports 80/443 without running as root (direct HTTPS only).
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+
+# Hardening.
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+SystemCallArchitectures=native
+UMask=0077
+
+# Keep the process inside the reference budget with headroom for the OS.
+MemoryMax=448M
+
+[Install]
+WantedBy=multi-user.target

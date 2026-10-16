@@ -1,0 +1,101 @@
+[package]
+name = "webnook"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.88"
+description = "A small Rust library for building fast, independently hosted websites."
+license = "MIT"
+readme = "README.md"
+keywords = ["web", "server", "static", "axum", "https"]
+categories = ["web-programming::http-server"]
+exclude = [".github/", "scripts/"]
+
+[features]
+default = []
+tls = ["dep:rustls", "dep:tokio-rustls"]
+sqlite = ["dep:rusqlite"]
+http-client = ["dep:reqwest", "dep:serde", "dep:serde_json"]
+embed = ["dep:rust-embed"]
+
+[dependencies]
+axum = "0.8"
+bytes = "1"
+flate2 = "1"
+hyper = { version = "1", features = ["server", "http1"] }
+hyper-util = { version = "0.1", features = ["tokio", "service"] }
+httpdate = "1"
+mime_guess = "2"
+thiserror = "2"
+tokio = { version = "1", features = ["fs", "net", "signal", "rt", "time", "sync"] }
+tower = { version = "0.5", features = ["limit", "util"] }
+tower-http = { version = "0.6", features = ["catch-panic", "fs", "limit", "timeout", "trace"] }
+tracing = "0.1"
+
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12", "logging"], optional = true }
+tokio-rustls = { version = "0.26", default-features = false, features = ["ring", "tls12", "logging"], optional = true }
+rusqlite = { version = "0.32", features = ["bundled"], optional = true }
+rust-embed = { version = "8", optional = true }
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json"], optional = true }
+serde = { version = "1", optional = true }
+serde_json = { version = "1", optional = true }
+
+[dev-dependencies]
+rusqlite = "0.32"
+tokio = { version = "1", features = ["macros", "rt", "rt-multi-thread", "time"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+axum = { version = "0.8", features = ["json"] }
+flate2 = "1"
+futures-util = "0.3"
+tower-http = { version = "0.6", features = ["timeout"] }
+tracing-subscriber = "0.3"
+rcgen = "0.13"
+tempfile = "3"
+
+[[example]]
+name = "personal_site"
+path = "examples/personal_site.rs"
+
+[[example]]
+name = "embedded"
+path = "examples/embedded.rs"
+required-features = ["embed"]
+
+[[example]]
+name = "startup_site"
+path = "examples/startup_site.rs"
+required-features = ["sqlite"]
+
+[[example]]
+name = "newsletter"
+path = "examples/newsletter.rs"
+required-features = ["http-client"]
+
+[[example]]
+name = "https"
+path = "examples/https.rs"
+required-features = ["tls"]
+
+[[test]]
+name = "sqlite"
+path = "tests/sqlite.rs"
+required-features = ["sqlite"]
+
+[[test]]
+name = "http_client"
+path = "tests/http_client.rs"
+required-features = ["http-client"]
+
+[[test]]
+name = "tls"
+path = "tests/tls.rs"
+required-features = ["tls", "http-client"]
+
+[[test]]
+name = "embed"
+path = "tests/embed.rs"
+required-features = ["embed"]
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
